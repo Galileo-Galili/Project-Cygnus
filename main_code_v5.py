@@ -8,6 +8,7 @@ SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Recycle Rush")
 
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 FPS = 60
 RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT = (150, 250)
 TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT = (70, 70)
@@ -70,6 +71,10 @@ class RecycleRush:
         self.trash_items = pygame.sprite.Group()
         self.trash_item_counter = 0
 
+        self.score = 0
+        self.lives = 3
+        self.paused = False
+
     def generate_trash_item(self):
         trash_type = random.choice(['paper', 'plastic', 'glass'])
 
@@ -87,8 +92,12 @@ class RecycleRush:
         SCREEN.fill(WHITE)
         SCREEN.blit(self.pause, (440, 10))
 
-        for i, life_image in enumerate(self.life_images):
+        for i, life_image in enumerate(self.life_images[:self.lives]):
             SCREEN.blit(life_image, (10 + i * 35, 10))
+
+        font = pygame.font.Font(None, 36)
+        score_text = font.render(f"Score: {self.score}", 1, BLACK)
+        SCREEN.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, 10))
 
         self.recycle_bins.draw(SCREEN)
         self.trash_items.draw(SCREEN)
@@ -104,6 +113,26 @@ class RecycleRush:
             SCREEN.blit(self.conveyor_belt, (rel_x, 350))
         self.conveyor_scroll += SCROLL_SPEED
 
+    def game_over_screen(self):
+        font = pygame.font.Font(None, 72)
+        game_over_text = font.render("Game Over", 1, BLACK)
+        play_again_text = font.render("Hit SPACE to play again", 1, BLACK)
+
+        while True:
+            SCREEN.fill(WHITE)
+            SCREEN.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - game_over_text.get_height() // 2 - 100))
+            SCREEN.blit(play_again_text, (WIDTH // 2 - play_again_text.get_width() // 2, HEIGHT // 2 + 100))
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        return True
+
     def run(self):
         clock = pygame.time.Clock()
         run = True
@@ -118,6 +147,8 @@ class RecycleRush:
                     run = False
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.pause.get_rect(topleft=(440, 10)).collidepoint(pygame.mouse.get_pos()):
+                        self.paused = not self.paused
                     for trash_item in self.trash_items.sprites():
                         if trash_item.rect.collidepoint(pygame.mouse.get_pos()):
                             dragging = True
@@ -131,34 +162,45 @@ class RecycleRush:
 
                 elif event.type == pygame.MOUSEMOTION:
                     if dragging and dragged_item is not None:
-                        dragged_item.rect.x = pygame.mouse.get_pos()[0] - dragged_item.drag_offset[0]
-                        dragged_item.rect.y = pygame.mouse.get_pos()[1] - dragged_item.drag_offset[1]
-
-                        colliding_bin = None
-                        for recycle_bin in self.recycle_bins.sprites():
-                            if recycle_bin.rect.colliderect(dragged_item.rect):
-                                colliding_bin = recycle_bin
-                                break
-
-                        if colliding_bin and colliding_bin.bin_type == dragged_item.trash_type:
-                            self.trash_items.remove(dragged_item)
-                            dragged_item = None
+                                                dragged_item.rect.x = pygame.mouse.get_pos()[0] - dragged_item.drag_offset[0]
+                                                dragged_item.rect.y = pygame.mouse.get_pos()[1] - dragged_item.drag_offset[1]
 
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    if dragging:
-                        dragging = False
+                    if dragging and dragged_item is not None:
+                        for recycle_bin in self.recycle_bins.sprites():
+                            if dragged_item.rect.colliderect(recycle_bin.rect):
+                                if dragged_item.trash_type == recycle_bin.bin_type:
+                                    self.score += 1
+                                else:
+                                    self.lives -= 1
+                                self.trash_items.remove(dragged_item)
+                                dragged_item.kill()
 
-                        if dragged_item is not None:
-                            dragged_item.rect.x = dragged_item.initial_x
-                            dragged_item.rect.y = dragged_item.initial_y
+                        dragged_item.rect.x = dragged_item.initial_x
+                        dragged_item.rect.y = dragged_item.initial_y
+                        dragging = False
                         dragged_item = None
 
-            self.trash_item_counter += 1
-            if self.trash_item_counter >= TRASH_ITEMS_INTERVAL:
-                self.generate_trash_item()
-                self.trash_item_counter = 0
+            if not self.paused:
+                self.trash_item_counter += 1
+                if self.trash_item_counter >= TRASH_ITEMS_INTERVAL:
+                    self.generate_trash_item()
+                    self.trash_item_counter = 0
 
-            self.trash_items.update()
+                self.trash_items.update()
+
+                for trash_item in self.trash_items.sprites():
+                    if trash_item.rect.x >= WIDTH:
+                        self.trash_items.remove(trash_item)
+                        trash_item.kill()
+                        self.lives -= 1
+
+                if self.lives <= 0:
+                    if not self.game_over_screen():
+                        break
+                    else:
+                        self.__init__()
+
             self.draw_window()
 
         pygame.quit()
@@ -166,4 +208,3 @@ class RecycleRush:
 if __name__ == "__main__":
     game = RecycleRush()
     game.run()
-

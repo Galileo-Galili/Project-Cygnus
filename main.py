@@ -285,10 +285,11 @@ class RecycleRush:
                         self.lives -= 1
                         item.kill()
 
+                self.draw_conveyor_belt()
                 self.recycle_bins.draw(SCREEN)
                 self.trash_items.draw(SCREEN)
-
-                self.draw_conveyor_belt()
+                
+               
 
                 for i in range(self.lives):
                     SCREEN.blit(self.life_images[i], (10 + 40 * i, 10))

@@ -1,5 +1,8 @@
 import pygame
 import random
+import button
+import sys
+
 
 pygame.init()
 
@@ -7,8 +10,7 @@ pygame.init()
 SWAP_BINS_EVENT = pygame.USEREVENT + 1
 
 # Add this line after initializing pygame
-pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 20)  # 2 minutes
-
+pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 20)  # 20 Seconds
 
 WIDTH, HEIGHT = 480, 800
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -21,6 +23,7 @@ RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT = (150, 250)
 TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT = (70, 70)
 SCROLL_SPEED = 1
 TRASH_ITEMS_INTERVAL = 120
+
 
 class TrashItem(pygame.sprite.Sprite):
     def __init__(self, trash_type, image):
@@ -48,37 +51,47 @@ class RecycleBin(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
 class RecycleRush:
     def __init__(self):
         self.life_image = pygame.image.load("heart.png")
-        self.life_images = [pygame.transform.scale(self.life_image, (30, 30)) for _ in range(3)]
+        self.life_images = [pygame.transform.scale(
+            self.life_image, (30, 30)) for _ in range(3)]
 
         self.pause_image = pygame.image.load("pause.png")
         self.pause = pygame.transform.scale(self.pause_image, (30, 30))
 
         self.conveyor_belt_image = pygame.image.load('conveyor3.png')
-        self.conveyor_belt = pygame.transform.scale(self.conveyor_belt_image, (600, 50))
+        self.conveyor_belt = pygame.transform.scale(
+            self.conveyor_belt_image, (600, 50))
         self.conveyor_scroll = 0
 
         self.paper_bin_image = pygame.image.load("paper.png")
-        self.paper_bin = RecycleBin("paper", pygame.transform.scale(self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 540)
+        self.paper_bin = RecycleBin("paper", pygame.transform.scale(
+            self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 540)
 
         self.plastic_bin_image = pygame.image.load("plastic.png")
-        self.plastic_bin = RecycleBin("plastic", pygame.transform.scale(self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 540)
+        self.plastic_bin = RecycleBin("plastic", pygame.transform.scale(
+            self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 540)
 
         self.glass_bin_image = pygame.image.load("glass.png")
-        self.glass_bin = RecycleBin("glass", pygame.transform.scale(self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 540)
+        self.glass_bin = RecycleBin("glass", pygame.transform.scale(
+            self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 540)
 
-        self.recycle_bins = pygame.sprite.Group(self.paper_bin, self.plastic_bin, self.glass_bin)
+        self.recycle_bins = pygame.sprite.Group(
+            self.paper_bin, self.plastic_bin, self.glass_bin)
 
         self.paper_trash_image = pygame.image.load('paperTrash.png')
-        self.paper_trash = pygame.transform.scale(self.paper_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
+        self.paper_trash = pygame.transform.scale(
+            self.paper_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
 
         self.plastic_trash_image = pygame.image.load('plasticTrash.png')
-        self.plastic_trash = pygame.transform.scale(self.plastic_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
+        self.plastic_trash = pygame.transform.scale(
+            self.plastic_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
 
         self.glass_trash_image = pygame.image.load('glassTrash.png')
-        self.glass_trash = pygame.transform.scale(self.glass_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
+        self.glass_trash = pygame.transform.scale(
+            self.glass_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
 
         self.trash_items = pygame.sprite.Group()
         self.trash_item_counter = 0
@@ -91,37 +104,42 @@ class RecycleRush:
         self.plastic_items = 0
         self.glass_items = 0
 
-
-
-
-
     def game_over_screen(self):
         game_over_font = pygame.font.Font(None, 72)
         game_over_text = game_over_font.render("Game Over", 1, BLACK)
         score_font = pygame.font.Font(None, 48)
         score_text = score_font.render(f"Score: {self.score}", 1, BLACK)
-        
+
         total_items = self.score + (3 - self.lives)
         paper_percentage = (self.paper_items / total_items) * 100
         plastic_percentage = (self.plastic_items / total_items) * 100
         glass_percentage = (self.glass_items / total_items) * 100
 
         breakdown_font = pygame.font.Font(None, 36)
-        paper_text = breakdown_font.render(f"Paper: {paper_percentage:.1f}%", 1, BLACK)
-        plastic_text = breakdown_font.render(f"Plastic: {plastic_percentage:.1f}%", 1, BLACK)
-        glass_text = breakdown_font.render(f"Glass: {glass_percentage:.1f}%", 1, BLACK)
-        
+        paper_text = breakdown_font.render(
+            f"Paper: {paper_percentage:.1f}%", 1, BLACK)
+        plastic_text = breakdown_font.render(
+            f"Plastic: {plastic_percentage:.1f}%", 1, BLACK)
+        glass_text = breakdown_font.render(
+            f"Glass: {glass_percentage:.1f}%", 1, BLACK)
+
         retry_font = pygame.font.Font(None, 36)
         retry_text = retry_font.render("Click to retry", 1, BLACK)
 
         while True:
             SCREEN.fill(WHITE)
-            SCREEN.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, 150))
-            SCREEN.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, 250))
-            SCREEN.blit(paper_text, (WIDTH // 2 - paper_text.get_width() // 2, 350))
-            SCREEN.blit(plastic_text, (WIDTH // 2 - plastic_text.get_width() // 2, 400))
-            SCREEN.blit(glass_text, (WIDTH // 2 - glass_text.get_width() // 2, 450))
-            SCREEN.blit(retry_text, (WIDTH // 2 - retry_text.get_width() // 2, 550))
+            SCREEN.blit(game_over_text, (WIDTH // 2 -
+                        game_over_text.get_width() // 2, 150))
+            SCREEN.blit(score_text, (WIDTH // 2 -
+                        score_text.get_width() // 2, 250))
+            SCREEN.blit(paper_text, (WIDTH // 2 -
+                        paper_text.get_width() // 2, 350))
+            SCREEN.blit(plastic_text, (WIDTH // 2 -
+                        plastic_text.get_width() // 2, 400))
+            SCREEN.blit(glass_text, (WIDTH // 2 -
+                        glass_text.get_width() // 2, 450))
+            SCREEN.blit(retry_text, (WIDTH // 2 -
+                        retry_text.get_width() // 2, 550))
 
             pygame.display.update()
 
@@ -131,23 +149,42 @@ class RecycleRush:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     return True
 
-
     def draw_conveyor_belt(self):
         rel_x = self.conveyor_scroll % self.conveyor_belt.get_rect().width
-        SCREEN.blit(self.conveyor_belt, (rel_x - self.conveyor_belt.get_rect().width, 350))
+        SCREEN.blit(self.conveyor_belt,
+                    (rel_x - self.conveyor_belt.get_rect().width, 350))
 
         if rel_x < WIDTH:
             SCREEN.blit(self.conveyor_belt, (rel_x, 350))
         self.conveyor_scroll += SCROLL_SPEED
 
-
     def pause_screen(self):
         pause_font = pygame.font.Font(None, 72)
         resume_text = pause_font.render("Click to resume", 1, BLACK)
+        PAUSE_TEXT = pause_font.render("PAUSED", True, BLACK)
 
         while self.paused:
             SCREEN.fill(WHITE)
-            SCREEN.blit(resume_text, (WIDTH // 2 - resume_text.get_width() // 2, HEIGHT // 2 - resume_text.get_height() // 2))
+            SCREEN.blit(PAUSE_TEXT, (WIDTH // 2 - PAUSE_TEXT.get_width() //
+                        2, HEIGHT // 8 - PAUSE_TEXT.get_height() // 2))
+
+            RESUME_BUTTON = button.Button(image=pygame.transform.scale(pygame.image.load("Resume.png"), (300, 75)), pos=(WIDTH//2, 275),
+                                          text_input="RESUME", font=pygame.font.Font(None, 40), base_color="#ffffff", hovering_color="#000000")
+            RESTART_BUTTON = button.Button(image=pygame.transform.scale(pygame.image.load("Restart.png"), (300, 75)), pos=(WIDTH//2, 400),
+                                           text_input="RESTART", font=pygame.font.Font(None, 40), base_color="#ffffff", hovering_color="#000000")
+            QUIT_BUTTON = button.Button(image=pygame.transform.scale(pygame.image.load("Quit.png"), (300, 75)), pos=(WIDTH//2, 525),
+                                        text_input="QUIT", font=pygame.font.Font(None, 40), base_color="#ffffff", hovering_color="#000000")
+            # Changes Color when hovering
+            RESUME_BUTTON.changeColor(pygame.mouse.get_pos())
+            RESUME_BUTTON.update(SCREEN)
+
+            # Changes Color when hovering
+            RESTART_BUTTON.changeColor(pygame.mouse.get_pos())
+            RESTART_BUTTON.update(SCREEN)
+
+            # Changes Color when hovering
+            QUIT_BUTTON.changeColor(pygame.mouse.get_pos())
+            QUIT_BUTTON.update(SCREEN)
 
             pygame.display.update()
 
@@ -156,7 +193,12 @@ class RecycleRush:
                     pygame.quit()
                     return False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.paused = False
+                    if RESUME_BUTTON.checkForInput(pygame.mouse.get_pos()):
+                        self.paused = False
+                    elif RESTART_BUTTON.checkForInput(pygame.mouse.get_pos()):
+                        self.__init__()
+                    elif QUIT_BUTTON.checkForInput(pygame.mouse.get_pos()):
+                        sys.exit()
 
         return True
 
@@ -173,7 +215,8 @@ class RecycleRush:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                #This block handles the SWAP_BINS_EVENT
+
+                 #This block handles the SWAP_BINS_EVENT
                 elif event.type == SWAP_BINS_EVENT:
                     recycle_bin_positions = [bin.rect.x for bin in self.recycle_bins]
                     random.shuffle(recycle_bin_positions)
@@ -266,24 +309,26 @@ class RecycleRush:
                 for i in range(self.lives):
                     SCREEN.blit(self.life_images[i], (10 + 40 * i, 10))
 
-                score_text = pygame.font.Font(None, 36).render(str(self.score), 1, BLACK)
-                SCREEN.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, 10))
+                score_text = pygame.font.Font(
+                    None, 36).render(str(self.score), 1, BLACK)
+                SCREEN.blit(score_text, (WIDTH // 2 -
+                            score_text.get_width() // 2, 10))
 
                 SCREEN.blit(self.pause, (440, 10))
 
                 pygame.display.update()
- 
 
                 if self.lives <= 0:
                     run = False
-        
+
                     # Call the game_over_screen() method when the game ends
                     if self.game_over_screen():
-                    # Restart the game after the game over screen
+                        # Restart the game after the game over screen
                         self.__init__()
                         self.run()
                     else:
                         pygame.quit()
+
 
 if __name__ == "__main__":
     game = RecycleRush()

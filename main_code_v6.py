@@ -3,6 +3,13 @@ import random
 
 pygame.init()
 
+# Add this line after the imports
+SWAP_BINS_EVENT = pygame.USEREVENT + 1
+
+# Add this line after initializing pygame
+pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 60 * 2)  # 2 minutes
+
+
 WIDTH, HEIGHT = 480, 800
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Recycle Rush")
@@ -166,6 +173,12 @@ class RecycleRush:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
+                #This block handles the SWAP_BINS_EVENT
+                elif event.type == SWAP_BINS_EVENT:
+                    recycle_bin_positions = [bin.rect.x for bin in self.recycle_bins]
+                    random.shuffle(recycle_bin_positions)
+                    for i, recycle_bin in enumerate(self.recycle_bins):
+                        recycle_bin.rect.x = recycle_bin_positions[i]
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.pause.get_rect(topleft=(440, 10)).collidepoint(

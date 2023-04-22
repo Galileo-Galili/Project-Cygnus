@@ -12,7 +12,7 @@ SWAP_BINS_EVENT = pygame.USEREVENT + 1
 # Add this line after initializing pygame
 pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 20)  # 20 Seconds
 
-WIDTH, HEIGHT = 480, 800
+WIDTH, HEIGHT = 480, 700
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Recycle Rush")
 
@@ -66,32 +66,23 @@ class RecycleRush:
             self.conveyor_belt_image, (600, 50))
         self.conveyor_scroll = 0
 
-        self.paper_bin_image = pygame.image.load("paper.png")
+        self.paper_bin_image = pygame.image.load("PaperBin.png")
         self.paper_bin = RecycleBin("paper", pygame.transform.scale(
-            self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 540)
+            self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 440)
 
-        self.plastic_bin_image = pygame.image.load("plastic.png")
+        self.plastic_bin_image = pygame.image.load("PlasticBin.png")
         self.plastic_bin = RecycleBin("plastic", pygame.transform.scale(
-            self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 540)
+            self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 440)
 
-        self.glass_bin_image = pygame.image.load("glass.png")
+        self.glass_bin_image = pygame.image.load("GlassBin.png")
         self.glass_bin = RecycleBin("glass", pygame.transform.scale(
-            self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 540)
+            self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 440)
 
         self.recycle_bins = pygame.sprite.Group(
             self.paper_bin, self.plastic_bin, self.glass_bin)
 
-        self.paper_trash_image = pygame.image.load('paperTrash.png')
-        self.paper_trash = pygame.transform.scale(
-            self.paper_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
-
-        self.plastic_trash_image = pygame.image.load('plasticTrash.png')
-        self.plastic_trash = pygame.transform.scale(
-            self.plastic_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
-
-        self.glass_trash_image = pygame.image.load('glassTrash.png')
-        self.glass_trash = pygame.transform.scale(
-            self.glass_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
+       # Generate a random number between 1 and 3
+       
 
         self.trash_items = pygame.sprite.Group()
         self.trash_item_counter = 0
@@ -286,13 +277,13 @@ class RecycleRush:
                 self.trash_item_counter += 1
                 if self.trash_item_counter % TRASH_ITEMS_INTERVAL == 0:
                     trash_type = random.choice(["paper", "plastic", "glass"])
-                    trash_image = {
-                        "paper": self.paper_trash,
-                        "plastic": self.plastic_trash,
-                        "glass": self.glass_trash,
-                    }[trash_type]
+                    random_num = random.randint(1, 5)
+                    trash_image = pygame.image.load(f'F.{trash_type.capitalize()}{random_num}.png')
+                    trash_image = pygame.transform.scale(trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
                     trash_item = TrashItem(trash_type, trash_image)
                     self.trash_items.add(trash_item)
+
+                
 
                 self.trash_items.update()
                 for item in self.trash_items:
@@ -319,7 +310,7 @@ class RecycleRush:
                 pygame.display.update()
 
                 if self.lives <= 0:
-                    run = False
+                    run = True
 
                     # Call the game_over_screen() method when the game ends
                     if self.game_over_screen():
@@ -333,4 +324,3 @@ class RecycleRush:
 if __name__ == "__main__":
     game = RecycleRush()
     game.run()
-

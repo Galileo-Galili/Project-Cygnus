@@ -10,11 +10,12 @@ pygame.init()
 SWAP_BINS_EVENT = pygame.USEREVENT + 1
 
 # Add this line after initializing pygame
-pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 20)  # 20 Seconds
+pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 3)  # 20 Seconds
 
 WIDTH, HEIGHT = 480, 800
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Recycle Rush")
+background = pygame.transform.scale(pygame.image.load('background1.jpg'), (WIDTH, HEIGHT))
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -66,17 +67,17 @@ class RecycleRush:
             self.conveyor_belt_image, (600, 50))
         self.conveyor_scroll = 0
 
-        self.paper_bin_image = pygame.image.load("paper.png")
+        self.paper_bin_image = pygame.image.load("PaperBin.png")
         self.paper_bin = RecycleBin("paper", pygame.transform.scale(
-            self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 540)
+            self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 10, 480)
 
-        self.plastic_bin_image = pygame.image.load("plastic.png")
+        self.plastic_bin_image = pygame.image.load("PlasticBin.png")
         self.plastic_bin = RecycleBin("plastic", pygame.transform.scale(
-            self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 540)
+            self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 170, 480)
 
-        self.glass_bin_image = pygame.image.load("glass.png")
+        self.glass_bin_image = pygame.image.load("GlassBin.png")
         self.glass_bin = RecycleBin("glass", pygame.transform.scale(
-            self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 540)
+            self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 320, 480)
 
         self.recycle_bins = pygame.sprite.Group(
             self.paper_bin, self.plastic_bin, self.glass_bin)
@@ -160,7 +161,6 @@ class RecycleRush:
 
     def pause_screen(self):
         pause_font = pygame.font.Font(None, 72)
-        resume_text = pause_font.render("Click to resume", 1, BLACK)
         PAUSE_TEXT = pause_font.render("PAUSED", True, BLACK)
 
         while self.paused:
@@ -203,8 +203,9 @@ class RecycleRush:
         return True
 
     def run(self):
+        
         clock = pygame.time.Clock()
-
+        switching_bins = False
         run = True
         dragging = False
         dragged_item = None
@@ -218,10 +219,11 @@ class RecycleRush:
 
                  #This block handles the SWAP_BINS_EVENT
                 elif event.type == SWAP_BINS_EVENT:
-                    recycle_bin_positions = [bin.rect.x for bin in self.recycle_bins]
-                    random.shuffle(recycle_bin_positions)
-                    for i, recycle_bin in enumerate(self.recycle_bins):
-                        recycle_bin.rect.x = recycle_bin_positions[i]
+                    if not dragging:
+                        recycle_bin_positions = [bin.rect.x for bin in self.recycle_bins]
+                        random.shuffle(recycle_bin_positions)
+                        for i, recycle_bin in enumerate(self.recycle_bins):
+                            recycle_bin.rect.x = recycle_bin_positions[i]
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.pause.get_rect(topleft=(440, 10)).collidepoint(
@@ -281,7 +283,7 @@ class RecycleRush:
                         dragged_item = None
 
             if not self.paused:
-                SCREEN.fill(WHITE)
+                SCREEN.blit(background, (0, 0))
 
                 self.trash_item_counter += 1
                 if self.trash_item_counter % TRASH_ITEMS_INTERVAL == 0:

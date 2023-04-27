@@ -124,6 +124,8 @@ class RecycleRush:
         paper_percentage = (self.paper_items / total_items) * 100
         plastic_percentage = (self.plastic_items / total_items) * 100
         glass_percentage = (self.glass_items / total_items) * 100
+        missed_items = 3 - self.lives
+        missed_percentage = (missed_items / total_items) * 100
 
         breakdown_font = pygame.font.Font(None, 36)
         paper_text = breakdown_font.render(
@@ -132,6 +134,8 @@ class RecycleRush:
             f"Plastic: {plastic_percentage:.1f}%", 1, BLACK)
         glass_text = breakdown_font.render(
             f"Glass: {glass_percentage:.1f}%", 1, BLACK)
+        missed_text = breakdown_font.render(
+            f"Missed: {missed_percentage:.1f}%", 1, BLACK)
 
         retry_font = pygame.font.Font(None, 36)
         retry_text = retry_font.render("Click to retry", 1, BLACK)
@@ -148,6 +152,8 @@ class RecycleRush:
                         plastic_text.get_width() // 2, 400))
             SCREEN.blit(glass_text, (WIDTH // 2 -
                         glass_text.get_width() // 2, 450))
+            SCREEN.blit(missed_text, (WIDTH // 2 -
+                        missed_text.get_width() // 2, 500))
             SCREEN.blit(retry_text, (WIDTH // 2 -
                         retry_text.get_width() // 2, 550))
 
@@ -352,4 +358,3 @@ class RecycleRush:
 if __name__ == "__main__":
     game = RecycleRush()
     game.run()
-

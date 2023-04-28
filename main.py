@@ -21,9 +21,9 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 FPS = 60
 RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT = (150, 280)
-TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT = (70, 70)
+TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT = (80, 80)
 SCROLL_SPEED = 1
-TRASH_ITEMS_INTERVAL = 120
+TRASH_ITEMS_INTERVAL = 110
 
 
 
@@ -43,10 +43,9 @@ class TrashItem(pygame.sprite.Sprite):
             self.rect.x += SCROLL_SPEED
             if self.rect.x > WIDTH:
                 self.kill()
-
+    
     def check_collision(self, recycle_bin):
         return self.rect.colliderect(recycle_bin.rect)
-
 
 class RecycleBin(pygame.sprite.Sprite):
     def __init__(self, bin_type, image, x, y):
@@ -70,39 +69,28 @@ class RecycleRush:
         self.conveyor_belt_image = pygame.image.load('Assets/conveyor3.png')
         self.conveyor_belt = pygame.transform.scale(
             self.conveyor_belt_image, (600, 50))
-        self.conveyor_scroll = 0
+        
 
-        self.paper_bin_image = pygame.image.load("Assets/PaperBin1.png")
+        self.paper_bin_image = pygame.image.load("Assets/PaperBin.png")
         self.paper_bin = RecycleBin("paper", pygame.transform.scale(
             self.paper_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 6, 480)
 
-        self.plastic_bin_image = pygame.image.load("Assets/PlasticBin2.png")
+        self.plastic_bin_image = pygame.image.load("Assets/PlasticBin.png")
         self.plastic_bin = RecycleBin("plastic", pygame.transform.scale(
             self.plastic_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 160, 480)
 
-        self.glass_bin_image = pygame.image.load("Assets/GlassBin1.png")
+        self.glass_bin_image = pygame.image.load("Assets/GlassBin.png")
         self.glass_bin = RecycleBin("glass", pygame.transform.scale(
             self.glass_bin_image, (RECYCLE_BIN_WIDTH, RECYCLE_BIN_HEIGHT)), 315, 480)
 
         self.recycle_bins = pygame.sprite.Group(
             self.paper_bin, self.plastic_bin, self.glass_bin)
 
-        self.paper_trash_image = pygame.image.load('Assets/paperTrash.png')
-        self.paper_trash = pygame.transform.scale(
-            self.paper_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
-
-        self.plastic_trash_image = pygame.image.load('Assets/plasticTrash.png')
-        self.plastic_trash = pygame.transform.scale(
-            self.plastic_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
-
-        self.glass_trash_image = pygame.image.load('Assets/glassTrash.png')
-        self.glass_trash = pygame.transform.scale(
-            self.glass_trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
-
+                
         self.trash_items = pygame.sprite.Group()
         self.trash_item_counter = 0
 
-        
+        self.conveyor_scroll = SCROLL_SPEED
 
         self.score = 0
         self.lives = 3
@@ -112,7 +100,7 @@ class RecycleRush:
         self.plastic_items = 0
         self.glass_items = 0
 
-
+    
     def check_collision(self, dragged_item):
         for recycle_bin in self.recycle_bins:
             if (
@@ -121,9 +109,7 @@ class RecycleRush:
             ):
                 return True
         return False
-
-        
-        
+    
     
 
     def game_over_screen(self):
@@ -136,8 +122,6 @@ class RecycleRush:
         paper_percentage = (self.paper_items / total_items) * 100
         plastic_percentage = (self.plastic_items / total_items) * 100
         glass_percentage = (self.glass_items / total_items) * 100
-        missed_items = 3 - self.lives
-        missed_percentage = (missed_items / total_items) * 100
 
         breakdown_font = pygame.font.Font(None, 36)
         paper_text = breakdown_font.render(
@@ -146,8 +130,6 @@ class RecycleRush:
             f"Plastic: {plastic_percentage:.1f}%", 1, BLACK)
         glass_text = breakdown_font.render(
             f"Glass: {glass_percentage:.1f}%", 1, BLACK)
-        missed_text = breakdown_font.render(
-            f"Missed: {missed_percentage:.1f}%", 1, BLACK)
 
         retry_font = pygame.font.Font(None, 36)
         retry_text = retry_font.render("Click to retry", 1, BLACK)
@@ -164,8 +146,6 @@ class RecycleRush:
                         plastic_text.get_width() // 2, 400))
             SCREEN.blit(glass_text, (WIDTH // 2 -
                         glass_text.get_width() // 2, 450))
-            SCREEN.blit(missed_text, (WIDTH // 2 -
-                        missed_text.get_width() // 2, 500))
             SCREEN.blit(retry_text, (WIDTH // 2 -
                         retry_text.get_width() // 2, 550))
 
@@ -234,8 +214,16 @@ class RecycleRush:
 
     def run(self):
         self.bg_music = pygame.mixer.music.load('Music/background_music.mp3')
-        self.bg_music = pygame.mixer.music.play(-1)
-        self.bg_music = pygame.mixer.music.set_volume(0.3)
+        self.bg_music = pygame.mixer.music.set_volume(0.5)
+        self.bg_music = pygame.mixer.music.play()
+
+        self.correct_sort_music = pygame.mixer.Sound('Music/correct_sort_music.mp3')
+        self.correct_sort_music.set_volume(0.5)
+
+        self.life_lost_music = pygame.mixer.Sound('Music/incorrect_sort_music.wav')
+        self.life_lost_music.set_volume(0.5)
+        
+
         clock = pygame.time.Clock()
         switching_bins = False
         run = True
@@ -300,27 +288,32 @@ class RecycleRush:
 
                                 dragged_item.kill()
 
+                                self.correct_sort_music.play()
+                                break
+
                         if (
                             not correct_drop
                             and dragged_item.rect.y >= HEIGHT - RECYCLE_BIN_HEIGHT - 20
-                        ):
+                        ):  
+                            
                             self.lives -= 1
                             dragged_item.kill()
+                            if self.lives >=1:
+                                self.life_lost_music.play()
 
                         dragging = False
                         dragged_item = None
 
             if not self.paused:
+                
                 SCREEN.blit(background, (0, 0))
                 
                 self.trash_item_counter += 1
                 if self.trash_item_counter % TRASH_ITEMS_INTERVAL == 0:
                     trash_type = random.choice(["paper", "plastic", "glass"])
-                    trash_image = {
-                        "paper": self.paper_trash,
-                        "plastic": self.plastic_trash,
-                        "glass": self.glass_trash,
-                    }[trash_type]
+                    random_num = random.randint(1, 4)
+                    trash_image = pygame.image.load(f'Assets/{trash_type.capitalize()}{random_num}.png')
+                    trash_image = pygame.transform.scale(trash_image, (TRASH_ITEMS_WIDTH, TRASH_ITEMS_HEIGHT))
                     trash_item = TrashItem(trash_type, trash_image)
                     self.trash_items.add(trash_item)
 
@@ -329,6 +322,8 @@ class RecycleRush:
                     if item.rect.x >= WIDTH:
                         self.lives -= 1
                         item.kill()
+                        if self.lives >=1:
+                                self.life_lost_music.play()
                         
 
                 self.draw_conveyor_belt()

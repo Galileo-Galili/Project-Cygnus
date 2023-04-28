@@ -22,7 +22,7 @@ class TestRecycleRush(unittest.TestCase):
         trash_type = "paper"
         image = pygame.image.load('Assets/paperTrash.png')
         item = TrashItem(trash_type, image)
-        item.rect.x, item.rect.y = 6, 480
+        item.rect.x, item.rect.y = game.paper_bin.rect.x, game.paper_bin.rect.y
 
         recycle_bin = game.paper_bin
         is_collision = item.check_collision(recycle_bin)
@@ -37,4 +37,4 @@ class TestRecycleRush(unittest.TestCase):
         self.assertEqual(item.rect.x, initial_x + SCROLL_SPEED)
 
 if __name__ == '__main__':
-    unittest.main(argv=['first-arg-is-ignored'], exit=False)
+    unittest.main(argv=['first-arg-is-ignored'], exit=False, verbosity=2)

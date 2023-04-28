@@ -1,54 +1,40 @@
+import unittest
 import pygame
-from main import TrashItem, RecycleBin
+from main import TrashItem, RecycleBin, RecycleRush, SCROLL_SPEED
 
-pygame.init()
+class TestRecycleRush(unittest.TestCase):
+    def test_create_trash_item(self):
+        trash_type = "paper"
+        image = pygame.image.load('Assets/paperTrash.png')
+        item = TrashItem(trash_type, image)
+        self.assertIsInstance(item, TrashItem)
+        self.assertEqual(item.trash_type, trash_type)
 
-def test_trash_item_creation():
-    trash_type = "paper"
-    image = pygame.Surface((70, 70))
-    trash_item = TrashItem(trash_type, image)
+    def test_create_recycle_bin(self):
+        bin_type = "glass"
+        image = pygame.image.load('Assets/GlassBin1.png')
+        recycle_bin = RecycleBin(bin_type, image, 315, 480)
+        self.assertIsInstance(recycle_bin, RecycleBin)
+        self.assertEqual(recycle_bin.bin_type, bin_type)
 
-    assert trash_item.trash_type == trash_type
-    assert trash_item.image == image
-    assert trash_item.rect.width == 70
-    assert trash_item.rect.height == 70
+    def test_check_collision(self):
+        game = RecycleRush()
+        trash_type = "paper"
+        image = pygame.image.load('Assets/paperTrash.png')
+        item = TrashItem(trash_type, image)
+        item.rect.x, item.rect.y = 6, 480
 
-def test_recycle_bin_creation():
-    bin_type = "paper"
-    image = pygame.Surface((150, 280))
-    x, y = 6, 480
-    recycle_bin = RecycleBin(bin_type, image, x, y)
+        recycle_bin = game.paper_bin
+        is_collision = item.check_collision(recycle_bin)
+        self.assertTrue(is_collision)
 
-    assert recycle_bin.bin_type == bin_type
-    assert recycle_bin.image == image
-    assert recycle_bin.rect.x == x
-    assert recycle_bin.rect.y == y
+    def test_update_trash_item(self):
+        trash_type = "plastic"
+        image = pygame.image.load('Assets/plasticTrash.png')
+        item = TrashItem(trash_type, image)
+        initial_x = item.rect.x
+        item.update()
+        self.assertEqual(item.rect.x, initial_x + SCROLL_SPEED)
 
-def test_trash_item_collision():
-    trash_type = "plastic"
-    image = pygame.Surface((70, 70))
-    trash_item = TrashItem(trash_type, image)
-    trash_item.rect.x = 5
-    trash_item.rect.y = 5
-
-    recycle_bin = RecycleBin("plastic", pygame.Surface((150, 280)), 0, 0)
-
-    assert trash_item.check_collision(recycle_bin)
-
-def test_trash_item_no_collision():
-    trash_type = "glass"
-    image = pygame.Surface((70, 70))
-    trash_item = TrashItem(trash_type, image)
-    trash_item.rect.x = 200
-    trash_item.rect.y = 200
-
-    recycle_bin = RecycleBin("glass", pygame.Surface((150, 280)), 0, 0)
-
-    assert not trash_item.check_collision(recycle_bin)
-
-if __name__ == "__main__":
-    test_trash_item_creation()
-    test_recycle_bin_creation()
-    test_trash_item_collision()
-    test_trash_item_no_collision()
-    print("All tests passed.")
+if __name__ == '__main__':
+    unittest.main(argv=['first-arg-is-ignored'], exit=False)

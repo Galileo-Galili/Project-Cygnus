@@ -44,6 +44,9 @@ class TrashItem(pygame.sprite.Sprite):
             if self.rect.x > WIDTH:
                 self.kill()
 
+    def check_collision(self, recycle_bin):
+        return self.rect.colliderect(recycle_bin.rect)
+
 
 class RecycleBin(pygame.sprite.Sprite):
     def __init__(self, bin_type, image, x, y):
@@ -109,6 +112,15 @@ class RecycleRush:
         self.plastic_items = 0
         self.glass_items = 0
 
+
+    def check_collision(self, dragged_item):
+        for recycle_bin in self.recycle_bins:
+            if (
+                dragged_item.rect.colliderect(recycle_bin.rect)
+                and dragged_item.trash_type == recycle_bin.bin_type
+            ):
+                return True
+        return False
 
         
         
@@ -275,10 +287,7 @@ class RecycleRush:
                         dragged_item.dragging = False
                         correct_drop = False
                         for recycle_bin in self.recycle_bins:
-                            if (
-                                dragged_item.rect.colliderect(recycle_bin.rect)
-                                and dragged_item.trash_type == recycle_bin.bin_type
-                            ):
+                            if self.check_collision(dragged_item):
                                 correct_drop = True
                                 self.score += 1
 
@@ -290,7 +299,6 @@ class RecycleRush:
                                     self.glass_items += 1
 
                                 dragged_item.kill()
-                                break
 
                         if (
                             not correct_drop
@@ -358,3 +366,4 @@ class RecycleRush:
 if __name__ == "__main__":
     game = RecycleRush()
     game.run()
+

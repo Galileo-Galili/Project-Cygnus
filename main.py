@@ -6,17 +6,20 @@ from pygame import mixer
 
 pygame.init()
 mixer.init()
-# Add this line after the imports
+
+# Custom swap bins events.
 SWAP_BINS_EVENT = pygame.USEREVENT + 1
 
-# Add this line after initializing pygame
-pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 3)  # 20 Seconds
+# Timer triggers the swap bins event every 3 seconds.
+pygame.time.set_timer(SWAP_BINS_EVENT, 1000 * 3)
 
+# Sets up the display window and background image.
 WIDTH, HEIGHT = 480, 800
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Recycle Rush")
 background = pygame.transform.scale(pygame.image.load('Assets/background1.jpg'), (WIDTH, HEIGHT))
 
+# Sets up the game's colour and other game constants such as FPS, Scroll Spped of the belt, interval which items appear and size of bins and items.
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 FPS = 60
@@ -27,7 +30,7 @@ TRASH_ITEMS_INTERVAL = 110
 
 
 
-
+# TrashItem class represents a trash item on the conveyor belt.
 class TrashItem(pygame.sprite.Sprite):
     def __init__(self, trash_type, image):
         super().__init__()
@@ -47,6 +50,7 @@ class TrashItem(pygame.sprite.Sprite):
     def check_collision(self, recycle_bin):
         return self.rect.colliderect(recycle_bin.rect)
 
+# RecycleBin class represents a recycling bin.
 class RecycleBin(pygame.sprite.Sprite):
     def __init__(self, bin_type, image, x, y):
         super().__init__()
@@ -56,8 +60,9 @@ class RecycleBin(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-
+# RecycleRush class represents the main game logic and state.
 class RecycleRush:
+    # Initialize the game state.
     def __init__(self):
         self.life_image = pygame.image.load("Assets/heart.png")
         self.life_images = [pygame.transform.scale(
@@ -100,7 +105,7 @@ class RecycleRush:
         self.plastic_items = 0
         self.glass_items = 0
 
-    
+    # Check if the dragged item collides with the correct recycle bin.
     def check_collision(self, dragged_item):
         for recycle_bin in self.recycle_bins:
             if (
@@ -111,7 +116,7 @@ class RecycleRush:
         return False
     
     
-
+    # Show the game over screen and display the player's score and breakdown of sorted and unsorted items.
     def game_over_screen(self):
         game_over_font = pygame.font.Font(None, 72)
         game_over_text = game_over_font.render("Game Over", 1, BLACK)
@@ -156,7 +161,8 @@ class RecycleRush:
                     return False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     return True
-
+                
+    # Draw the conveyor belt on the screen.
     def draw_conveyor_belt(self):
         rel_x = self.conveyor_scroll % self.conveyor_belt.get_rect().width
         SCREEN.blit(self.conveyor_belt,
@@ -165,7 +171,7 @@ class RecycleRush:
         if rel_x < WIDTH:
             SCREEN.blit(self.conveyor_belt, (rel_x, 350))
         self.conveyor_scroll += SCROLL_SPEED
-
+    # Show the pause screen, allowing the player to resume, restart, or quit.
     def pause_screen(self):
         pause_font = pygame.font.Font(None, 72)
         PAUSE_TEXT = pause_font.render("PAUSED", True, BLACK)
@@ -211,25 +217,27 @@ class RecycleRush:
                         sys.exit()
 
         return True
-
+    # Main game loop.
     def run(self):
+        # Load and play background music.
         self.bg_music = pygame.mixer.music.load('Music/background_music.mp3')
         self.bg_music = pygame.mixer.music.set_volume(0.5)
         self.bg_music = pygame.mixer.music.play()
-
+        # Load and play sort music.
         self.correct_sort_music = pygame.mixer.Sound('Music/correct_sort_music.mp3')
         self.correct_sort_music.set_volume(0.5)
-
+        # Load and play lives lost music.
         self.life_lost_music = pygame.mixer.Sound('Music/incorrect_sort_music.wav')
         self.life_lost_music.set_volume(0.5)
         
-
+        # Initialize the game clock and other variables.
         clock = pygame.time.Clock()
         switching_bins = False
         run = True
         dragging = False
         dragged_item = None
-
+        
+        # Main event loop.
         while run:
             clock.tick(FPS)
            
@@ -357,7 +365,7 @@ class RecycleRush:
                     else:
                         pygame.quit()
 
-
+# Run the game.
 if __name__ == "__main__":
     game = RecycleRush()
     game.run()
